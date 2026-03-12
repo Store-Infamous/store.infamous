@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Infamous SMP Store</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:hsl(240,10%,4%);--card:hsl(240,8%,8%);--sidebar:hsl(240,8%,7%);
+      --border:hsl(240,6%,14%);--muted:hsl(240,6%,15%);--muted-fg:hsl(240,5%,60%);
+      --fg:hsl(0,0%,98%);--primary:hsl(276,91%,60%);--primary-fg:hsl(0,0%,100%);
+      --accent:hsl(145,100%,45%);--accent-fg:hsl(0,0%,4%);
+      --destructive:hsl(350,100%,56%);--pink:hsl(330,81%,60%);
+      --orange:hsl(25,95%,53%);--yellow:hsl(45,93%,47%);
+      --cyan:hsl(187,85%,53%);--emerald:hsl(160,84%,39%);
+      --r:.75rem;
+    }
+    html,body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--fg);min-height:100vh}
+    ::-webkit-scrollbar{width:6px}
+    ::-webkit-scrollbar-track{background:var(--bg)}
+    ::-webkit-scrollbar-thumb{background:var(--muted);border-radius:3px}
+    ::-webkit-scrollbar-thumb:hover{background:var(--primary)}
+
+    .app{display:flex;flex-direction:column;min-height:100vh}
+
+    /* HEADER */
+    header{
+      height:64px;border-bottom:1px solid var(--border);
+      background:hsla(240,10%,4%,.88);
+      backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+      position:sticky;top:0;z-index:50;
+      display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+    }
+    .logo{font-size:1.5rem;font-weight:900;letter-spacing:-1px;display:flex;align-items:center;gap:8px}
+    .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--pink));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem}
+    .logo .hi{color:var(--primary);text-shadow:0 0 28px hsla(276,91%,60%,.7)}
+    .header-right{display:flex;align-items:center;gap:10px}
+
+    /* BUTTONS */
+    .btn{display:inline-flex;align-items:center;gap:6px;cursor:pointer;border:none;border-radius:var(--r);font-family:inherit;font-weight:600;font-size:.875rem;padding:9px 18px;transition:all .2s;text-decoration:none;white-space:nowrap}
+    .btn-outline{background:transparent;border:1px solid var(--border);color:var(--fg)}
+    .btn-outline:hover{background:var(--muted);border-color:var(--primary)}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{box-shadow:0 0 22px hsla(276,91%,60%,.55);transform:translateY(-1px)}
+    .btn-accent{background:var(--accent);color:var(--accent-fg)}
+    .btn-accent:hover{box-shadow:0 0 20px hsla(145,100%,45%,.45);transform:translateY(-1px)}
+    .btn-discord{background:hsl(235,86%,65%);color:#fff}
+    .btn-discord:hover{background:hsl(235,86%,58%);box-shadow:0 0 20px hsla(235,86%,65%,.5);transform:translateY(-1px)}
+    .btn-sm{padding:6px 12px;font-size:.8rem}
+    .btn-full{width:100%;justify-content:center}
+    .btn-slate{background:hsl(215,16%,38%);color:#fff}.btn-slate:hover{background:hsl(215,16%,48%);transform:translateY(-1px)}
+    .btn-blue{background:hsl(221,83%,50%);color:#fff}.btn-blue:hover{box-shadow:0 0 16px hsla(221,83%,50%,.55);transform:translateY(-1px)}
+    .btn-purple{background:var(--primary);color:#fff}.btn-purple:hover{box-shadow:0 0 16px hsla(276,91%,60%,.55);transform:translateY(-1px)}
+    .btn-red{background:hsl(0,72%,48%);color:#fff}.btn-red:hover{box-shadow:0 0 16px hsla(0,72%,48%,.55);transform:translateY(-1px)}
+    .btn-orange{background:var(--orange);color:#fff}.btn-orange:hover{box-shadow:0 0 16px hsla(25,95%,53%,.55);transform:translateY(-1px)}
+    .btn-teal{background:var(--cyan);color:#000}.btn-teal:hover{box-shadow:0 0 16px hsla(187,85%,53%,.55);transform:translateY(-1px)}
+    .btn-gold{background:var(--yellow);color:#000}.btn-gold:hover{box-shadow:0 0 16px hsla(45,93%,47%,.55);transform:translateY(-1px)}
+    .btn-green{background:var(--emerald);color:#fff}.btn-green:hover{box-shadow:0 0 16px hsla(160,84%,39%,.55);transform:translateY(-1px)}
+    .btn-grad{background:linear-gradient(90deg,var(--primary),var(--pink));color:#fff}.btn-grad:hover{opacity:.88;transform:translateY(-1px)}
+    .cart-count{font-weight:800;color:var(--accent)}
+
+    /* BODY */
+    .body-area{display:flex;flex:1;position:relative}
+
+    /* BG IMAGE */
+    .bg-image{
+      position:fixed;inset:0;z-index:-1;
+      background:url('https://odifxhljwjklkjtqlorx.supabase.co/storage/v1/object/public/store-images/mc-bg.jpg') center/cover no-repeat;
+    }
+    .bg-image::after{
+      content:'';position:absolute;inset:0;
+      background:linear-gradient(to bottom,hsla(240,10%,4%,.88),hsla(240,10%,4%,.82));
+    }
+
+    /* SIDEBAR */
+    aside{
+      width:240px;background:hsla(240,8%,7%,.9);border-right:1px solid var(--border);
+      padding:20px 12px;display:flex;flex-direction:column;gap:4px;
+      position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    }
+    .sidebar-label{font-size:.66rem;font-weight:700;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px;padding:0 10px}
+    .sidebar-nav{display:flex;flex-direction:column;gap:2px}
+    .nav-btn{
+      width:100%;display:flex;align-items:center;gap:10px;padding:10px 14px;
+      border-radius:10px;border:1px solid transparent;background:transparent;color:var(--muted-fg);
+      font-family:inherit;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .18s;text-align:left;
+    }
+    .nav-btn:hover{background:var(--muted);color:var(--fg)}
+    .nav-btn.active{background:hsla(276,91%,60%,.14);color:var(--primary);border-color:hsla(276,91%,60%,.22)}
+    .nav-btn svg{width:18px;height:18px;flex-shrink:0}
+    .server-box{margin-top:auto;background:var(--card);border-radius:var(--r);border:1px solid var(--border);padding:16px;text-align:center}
+    .server-box h3{font-size:.63rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted-fg);margin-bottom:8px}
+    .server-box p{font-size:.7rem;color:var(--muted-fg);margin-top:4px}
+
+    /* MAIN */
+    main{flex:1;padding:28px 32px;overflow:auto}
+    .mw{max-width:960px}
+    .page{display:none}.page.active{display:block}
+    .space-y{display:flex;flex-direction:column;gap:26px}
+
+    /* HERO */
+    .hero{
+      border-radius:22px;border:1px solid hsla(276,91%,60%,.35);
+      background:linear-gradient(135deg,hsla(276,91%,60%,.25),hsla(276,91%,60%,.08) 55%,transparent);
+      padding:64px 32px;text-align:center;position:relative;overflow:hidden;
+    }
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% -10%,hsla(276,91%,60%,.28),transparent 72%)}
+    .hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:70px;background:linear-gradient(to top,rgba(0,0,0,.2),transparent)}
+    .hero-inner{position:relative;z-index:1}
+    .hero-sub{color:var(--muted-fg);margin-bottom:12px;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase;font-weight:500}
+    .hero-title{font-size:clamp(2.6rem,7vw,4.2rem);font-weight:900;line-height:1;margin-bottom:8px;letter-spacing:-2px}
+    .hero-title .hi{color:var(--primary);text-shadow:0 0 50px hsla(276,91%,60%,.8)}
+    .hero-desc{color:var(--muted-fg);font-size:.9rem;margin-top:12px}
+    .particle{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--primary);opacity:.4;animation:float 6s ease-in-out infinite}
+    @keyframes float{0%,100%{transform:translateY(0) scale(1);opacity:.4}50%{transform:translateY(-20px) scale(1.5);opacity:.8}}
+
+    /* USERNAME BAR */
+    .ubar{display:flex;align-items:center;gap:12px;background:hsla(240,8%,8%,.85);border-radius:var(--r);padding:10px;border:1px solid var(--border);transition:border-color .2s;backdrop-filter:blur(8px)}
+    .ubar:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px hsla(276,91%,60%,.1)}
+    .avatar-box{width:48px;height:48px;border-radius:10px;background:var(--muted);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+    .avatar-box img{width:44px;height:44px}
+    .ubar input{flex:1;background:transparent;border:none;outline:none;color:var(--fg);font-family:inherit;font-size:.95rem}
+    .ubar input::placeholder{color:var(--muted-fg)}
+
+    /* SECTION HEAD */
+    .sec-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .sec-icon{padding:9px;border-radius:10px}
+    .sec-head h2{font-size:1.15rem;font-weight:700}
+
+    /* PAGE HEADER */
+    .ph{text-align:center;margin-bottom:22px}
+    .badge-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 18px;border-radius:999px;font-size:.76rem;font-weight:600;margin-bottom:14px;letter-spacing:.04em}
+    .ph h1{font-size:2rem;font-weight:900;margin-bottom:8px;letter-spacing:-1px}
+    .ph p{color:var(--muted-fg);max-width:520px;margin:0 auto;font-size:.87rem;line-height:1.7}
+
+    /* GRIDS */
+    .grid{display:grid;gap:18px}
+    .g3{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+    .g2{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+    .g4{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+    .gpop{grid-template-columns:repeat(auto-fill,minmax(205px,1fr))}
+
+    /* CARD */
+    .card{
+      background:hsla(240,8%,8%,.92);border-radius:16px;border:1px solid var(--border);
+      overflow:hidden;transition:transform .25s,box-shadow .25s,border-color .25s;position:relative;
+      backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    }
+    .card:hover{transform:translateY(-6px);box-shadow:0 20px 56px rgba(0,0,0,.6)}
+    .card-bar{height:4px}
+    .card-body{padding:18px}
+    .card-center{padding:20px;text-align:center}
+
+    /* ── RANK CARD REDESIGN ── */
+    .rk-banner{
+      height:100px;position:relative;overflow:hidden;
+      display:flex;align-items:center;justify-content:space-between;padding:0 18px;
+    }
+    .rk-banner-bg{position:absolute;inset:0;opacity:.2}
+    .rk-banner-glow{position:absolute;right:-10px;top:-10px;width:120px;height:120px;border-radius:50%;filter:blur(40px);opacity:.5}
+    .rk-banner-img{
+      width:76px;height:76px;object-fit:contain;position:relative;z-index:1;
+      filter:drop-shadow(0 6px 18px rgba(0,0,0,.8));
+      transition:transform .35s;
+    }
+    .card:hover .rk-banner-img{transform:scale(1.12) translateY(-4px) rotate(-5deg)}
+    .rk-banner-text{position:relative;z-index:1;text-align:right}
+    .rk-banner-name{font-size:1.3rem;font-weight:900;letter-spacing:-.5px;line-height:1}
+    .rk-banner-lifetime{font-size:.65rem;color:var(--muted-fg);font-weight:500;text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+    .rk-price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:14px}
+    .price-xl{font-size:1.75rem;font-weight:800}
+    .price-sm{color:var(--muted-fg);font-size:.78rem}
+    .perks{list-style:none;display:flex;flex-direction:column;gap:5px;margin-bottom:18px}
+    .perks li{display:flex;align-items:flex-start;gap:7px;font-size:.8rem;color:var(--muted-fg)}
+    .ck{color:var(--accent);flex-shrink:0;font-size:.76rem;margin-top:2px;font-weight:700}
+
+    /* ── PRIME CARD REDESIGN ── */
+    .prime-card-top{
+      padding:20px 18px 16px;position:relative;overflow:hidden;
+      border-bottom:1px solid var(--border);
+    }
+    .prime-card-glow{position:absolute;top:-30px;right:-30px;width:130px;height:130px;border-radius:50%;filter:blur(50px);opacity:.45}
+    .prime-img-wrap{display:flex;align-items:center;gap:14px;position:relative;z-index:1}
+    .prime-img{width:68px;height:68px;object-fit:contain;filter:drop-shadow(0 6px 18px rgba(0,0,0,.8));transition:transform .35s}
+    .card:hover .prime-img{transform:scale(1.1) translateY(-4px)}
+    .prime-info{flex:1}
+    .prime-name-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+    .prime-badge{font-size:.58rem;background:var(--muted);color:var(--muted-fg);padding:2px 7px;border-radius:5px;font-weight:600}
+    .prime-price-row{display:flex;align-items:baseline;gap:6px}
+    .prime-body{padding:16px 18px}
+
+    /* ── KEY CARD REDESIGN ── */
+    .key-img-area{
+      height:120px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+    }
+    .key-img-glow{position:absolute;inset:0;opacity:.15}
+    .key-img{width:86px;height:86px;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 6px 20px rgba(0,0,0,.8));transition:transform .35s}
+    .card:hover .key-img{transform:scale(1.14) translateY(-5px)}
+
+    /* ── COIN CARD REDESIGN ── */
+    .coin-img-area{
+      height:110px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+    }
+    .coin-img{width:82px;height:82px;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 6px 20px rgba(0,0,0,.8));transition:transform .35s}
+    .card:hover .coin-img{transform:scale(1.12) translateY(-4px)}
+
+    /* ── TAG CARD REDESIGN ── */
+    .tag-card-top{
+      padding:18px 16px 12px;position:relative;overflow:hidden;
+      display:flex;flex-direction:column;align-items:center;
+      border-bottom:1px solid var(--border);
+    }
+    .tag-card-glow{position:absolute;inset:0;opacity:.12}
+    .tag-img{width:66px;height:66px;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 4px 14px rgba(0,0,0,.7));transition:transform .35s;margin-bottom:10px}
+    .card:hover .tag-img{transform:scale(1.1) translateY(-3px)}
+    .tag-preview{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 14px;border-radius:8px;
+      background:hsla(0,0%,100%,.05);border:1px solid var(--border);
+      position:relative;z-index:1;
+    }
+    .tag-txt{font-size:.95rem;font-weight:800}
+    .tag-un{color:var(--muted-fg);font-size:.82rem}
+    .tag-body{padding:14px 16px;text-align:center}
+
+    /* BADGES */
+    .pop-badge{position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:4px;background:var(--primary);color:#fff;font-size:.6rem;font-weight:700;padding:3px 9px;border-radius:999px;z-index:2;letter-spacing:.05em}
+    .ult-badge{position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:4px;background:var(--yellow);color:#000;font-size:.6rem;font-weight:700;padding:3px 9px;border-radius:999px;z-index:2;letter-spacing:.05em}
+    .ring-p{box-shadow:0 0 0 2px var(--primary)!important}
+    .ring-y{box-shadow:0 0 0 2px var(--yellow)!important}
+
+    /* POPULAR CARD IMAGE AREA */
+    .pop-img-area{height:130px;background:linear-gradient(135deg,hsla(276,91%,60%,.18),hsla(276,91%,60%,.05));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+    .pop-img-area img{width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 6px 18px rgba(0,0,0,.7));transition:transform .3s;position:relative;z-index:1}
+    .card:hover .pop-img-area img{transform:scale(1.12) translateY(-5px)}
+
+    /* INFO BOX */
+    .info-box{background:hsla(240,8%,8%,.85);border-radius:var(--r);border:1px solid var(--border);padding:20px;backdrop-filter:blur(8px)}
+    .info-box h3{font-weight:600;margin-bottom:10px;font-size:.93rem}
+    .info-box ul{list-style:none;display:flex;flex-direction:column;gap:6px}
+    .info-box li{font-size:.81rem;color:var(--muted-fg)}
+
+    /* FOOTER */
+    footer{border-top:1px solid var(--border);background:hsla(240,8%,7%,.9);backdrop-filter:blur(12px);padding:28px 36px;text-align:center}
+    .ft-logo{font-size:1.2rem;font-weight:900;margin-bottom:8px;letter-spacing:-.5px}
+    .ft-logo .hi{color:var(--primary)}
+    .ft-txt{color:var(--muted-fg);font-size:.78rem;line-height:2}
+    .ft-txt a{color:var(--primary);text-decoration:none}
+    .ft-txt a:hover{text-decoration:underline}
+
+    /* CART */
+    .cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:flex-start;justify-content:flex-end}
+    .cart-overlay.open{display:flex}
+    .cart-panel{width:100%;max-width:440px;height:100vh;background:hsl(240,10%,5%);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:22px;animation:slideIn .25s ease}
+    @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+    .cart-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+    .cart-hd h2{font-size:1rem;font-weight:700}
+    .cart-close{background:transparent;border:1px solid var(--border);color:var(--muted-fg);cursor:pointer;width:32px;height:32px;border-radius:8px;font-size:.9rem;transition:all .2s;display:flex;align-items:center;justify-content:center}
+    .cart-close:hover{background:var(--muted);color:var(--fg)}
+    .cart-items{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+    .cart-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:180px;color:var(--muted-fg);gap:12px;font-size:.9rem}
+    .cart-item{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:10px;padding:10px;border:1px solid var(--border)}
+    .cart-item-img{width:50px;height:50px;border-radius:8px;background:var(--muted);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+    .cart-item-img img{width:44px;height:44px;object-fit:contain}
+    .cii{flex:1;min-width:0}
+    .cii h4{font-size:.82rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cii .cat{font-size:.68rem;color:var(--muted-fg);text-transform:capitalize}
+    .cii .pr{font-size:.85rem;font-weight:700;color:var(--primary);margin-top:2px}
+    .qty-ctrl{display:flex;align-items:center;gap:4px}
+    .qb{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--fg);cursor:pointer;font-size:.9rem;display:flex;align-items:center;justify-content:center;transition:background .15s}
+    .qb:hover{background:var(--muted)}
+    .qn{width:26px;text-align:center;font-size:.85rem;font-weight:600}
+    .db{background:transparent;border:none;color:var(--destructive);cursor:pointer;padding:4px;border-radius:6px;font-size:1rem;transition:background .15s;display:flex;align-items:center;justify-content:center}
+    .db:hover{background:hsla(350,100%,56%,.1)}
+    .cart-ft{border-top:1px solid var(--border);padding-top:14px;margin-top:10px;display:flex;flex-direction:column;gap:10px}
+    .cart-tot{display:flex;justify-content:space-between;font-size:.84rem;color:var(--muted-fg)}
+    .cart-tot.main-tot{font-size:.95rem;color:var(--fg)}
+    .cart-tot span:last-child{font-weight:700}
+
+    /* CHECKOUT DISCORD BOX */
+    .dc-checkout{
+      background:linear-gradient(135deg,hsla(235,86%,65%,.18),hsla(235,86%,65%,.06));
+      border:1px solid hsla(235,86%,65%,.35);border-radius:12px;
+      padding:14px;margin-top:2px;text-align:center;
+    }
+    .dc-checkout p{font-size:.72rem;color:var(--muted-fg);margin-top:8px;line-height:1.5}
+
+    /* COLOR SYSTEM */
+    .bc-slate{border-color:hsla(215,16%,47%,.4)!important}
+    .bc-blue{border-color:hsla(221,83%,53%,.45)!important}
+    .bc-purple{border-color:hsla(276,91%,60%,.45)!important}
+    .bc-red{border-color:hsla(0,72%,51%,.45)!important}
+    .bc-orange{border-color:hsla(25,95%,53%,.45)!important}
+    .bc-teal{border-color:hsla(187,85%,53%,.45)!important}
+    .bc-gold{border-color:hsla(45,93%,47%,.45)!important}
+    .bc-green{border-color:hsla(160,84%,39%,.45)!important}
+    .bc-grad{border-color:hsla(276,91%,60%,.55)!important}
+
+    .bar-slate{background:linear-gradient(90deg,hsl(215,16%,47%),transparent)}
+    .bar-blue{background:linear-gradient(90deg,hsl(221,83%,53%),transparent)}
+    .bar-purple{background:linear-gradient(90deg,var(--primary),transparent)}
+    .bar-red{background:linear-gradient(90deg,hsl(0,72%,51%),transparent)}
+    .bar-orange{background:linear-gradient(90deg,var(--orange),transparent)}
+    .bar-teal{background:linear-gradient(90deg,var(--cyan),transparent)}
+    .bar-gold{background:linear-gradient(90deg,var(--yellow),transparent)}
+    .bar-green{background:linear-gradient(90deg,var(--emerald),transparent)}
+    .bar-grad{background:linear-gradient(90deg,var(--primary),var(--pink))}
+
+    .bg-slate{background:hsla(215,16%,47%,.15)}
+    .bg-blue{background:hsla(221,83%,53%,.15)}
+    .bg-purple{background:hsla(276,91%,60%,.15)}
+    .bg-red{background:hsla(0,72%,51%,.15)}
+    .bg-orange{background:hsla(25,95%,53%,.15)}
+    .bg-teal{background:hsla(187,85%,53%,.15)}
+    .bg-gold{background:hsla(45,93%,47%,.15)}
+    .bg-green{background:hsla(160,84%,39%,.15)}
+    .bg-grad{background:linear-gradient(135deg,hsla(276,91%,60%,.18),hsla(330,81%,60%,.12))}
+
+    .glow-slate{background:hsl(215,16%,47%)}
+    .glow-blue{background:hsl(221,83%,53%)}
+    .glow-purple{background:var(--primary)}
+    .glow-red{background:hsl(0,72%,51%)}
+    .glow-orange{background:var(--orange)}
+    .glow-teal{background:var(--cyan)}
+    .glow-gold{background:var(--yellow)}
+    .glow-green{background:var(--emerald)}
+    .glow-grad{background:var(--primary)}
+
+    .tc-slate{color:hsl(215,16%,70%)}
+    .tc-gold{color:var(--yellow)}
+    .tc-blue{color:hsl(221,83%,68%)}
+    .tc-purple{color:var(--primary)}
+    .tc-red{color:hsl(0,72%,68%)}
+    .tc-green{color:var(--emerald)}
+    .tc-teal{color:var(--cyan)}
+    .tc-orange{color:var(--orange)}
+    .tc-grad{background:linear-gradient(90deg,var(--primary),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+    @media(max-width:720px){aside{display:none}main{padding:16px 14px}.g3,.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+    @media(max-width:480px){.g3,.g4,.gpop{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="app">
+
+<!-- MC BACKGROUND -->
+<div class="bg-image"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚔️</div>
+    <span><span class="hi">INFAMOUS</span> SMP</span>
+  </div>
+  <div class="header-right">
+    <a href="https://discord.gg/ztmWEJg66R" target="_blank" class="btn btn-outline btn-sm">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+      Discord
+    </a>
+    <button class="btn btn-outline" onclick="openCart()">
+      🛒 Cart <span class="cart-count" id="cartCount">( 0 )</span>
+    </button>
+  </div>
+</header>
+
+<div class="body-area">
+
+<!-- SIDEBAR -->
+<aside>
+  <div class="sidebar-label">Categories</div>
+  <nav class="sidebar-nav">
+    <button class="nav-btn active" onclick="go('home',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
+    </button>
+    <button class="nav-btn" onclick="go('ranks',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>Ranks
+    </button>
+    <button class="nav-btn" onclick="go('prime',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7z"/></svg>Prime Ranks
+    </button>
+    <button class="nav-btn" onclick="go('keys',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>Crate Keys
+    </button>
+    <button class="nav-btn" onclick="go('coins',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 6v12"/><path d="M15 9.5a3 3 0 0 0-3-1.5h0a3 3 0 0 0 0 6h0a3 3 0 0 1 0 6h0a3 3 0 0 1-3-1.5"/></svg>Coins
+    </button>
+    <button class="nav-btn" onclick="go('tags',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>Tags
+    </button>
+  </nav>
+  <div class="server-box">
+    <h3>Server IP</h3>
+    <div style="font-size:.8rem;font-weight:700;color:var(--accent);margin:4px 0">Coming soon</div>
+    <p>Coming soon</p>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main>
+<div class="mw">
+
+  <!-- HOME -->
+  <div class="page active" id="page-home">
+    <div class="space-y">
+      <div class="hero">
+        <div class="particle" style="left:10%;top:20%;animation-delay:0s"></div>
+        <div class="particle" style="left:25%;top:60%;animation-delay:1s"></div>
+        <div class="particle" style="left:50%;top:30%;animation-delay:2s"></div>
+        <div class="particle" style="left:75%;top:50%;animation-delay:.5s"></div>
+        <div class="particle" style="left:88%;top:25%;animation-delay:1.5s"></div>
+        <div class="hero-inner">
+          <p class="hero-sub">⚔️ The Ultimate Minecraft Experience</p>
+          <h1 class="hero-title"><span class="hi">INFAMOUS</span> SMP</h1>
+          <p class="hero-desc">Purchase ranks, keys, coins and exclusive tags to enhance your gameplay</p>
+        </div>
+      </div>
+      <div class="ubar">
+        <div class="avatar-box"><img src="https://minotar.net/avatar/Steve/48" id="mcHead" alt="MC"/></div>
+        <input type="text" placeholder="Enter your Minecraft Username..." oninput="upHead(this.value)"/>
+        <button class="btn btn-accent">Continue</button>
+      </div>
+      <section>
+        <div class="sec-head">
+          <div class="sec-icon" style="background:hsla(25,95%,53%,.12)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="hsl(25,95%,53%)" stroke-width="2.2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+          </div>
+          <h2>🔥 Most Popular</h2>
+        </div>
+        <div class="grid gpop" id="popGrid"></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- RANKS -->
+  <div class="page" id="page-ranks">
+    <div class="space-y">
+      <div class="ph">
+        <div class="badge-pill" style="background:hsla(276,91%,60%,.12);color:var(--primary);border:1px solid hsla(276,91%,60%,.25)">🏆 LIFETIME RANKS</div>
+        <h1>Premium Ranks</h1>
+        <p>Upgrade your gameplay with exclusive perks and commands. All ranks are permanent with lifetime access.</p>
+      </div>
+      <div class="grid g3" id="ranksGrid"></div>
+    </div>
+  </div>
+
+  <!-- PRIME -->
+  <div class="page" id="page-prime">
+    <div class="space-y">
+      <div class="ph">
+        <div class="badge-pill" style="background:hsla(276,91%,60%,.12);color:var(--primary);border:1px solid hsla(276,91%,60%,.25)">👑 MONTHLY SUBSCRIPTION</div>
+        <h1>Prime Ranks</h1>
+        <p>Monthly subscription ranks with exclusive perks. Renew every month to keep your benefits active.</p>
+      </div>
+      <div class="grid g2" id="primeGrid"></div>
+    </div>
+  </div>
+
+  <!-- KEYS -->
+  <div class="page" id="page-keys">
+    <div class="space-y">
+      <div class="ph">
+        <div class="badge-pill" style="background:hsla(25,95%,53%,.12);color:var(--orange);border:1px solid hsla(25,95%,53%,.25)">🔑 MYSTERY CRATES</div>
+        <h1>Crate Keys</h1>
+        <p>Open mystery crates and win amazing rewards! Each key unlocks unique items and rare drops.</p>
+      </div>
+      <div class="grid g4" id="keysGrid"></div>
+      <div class="info-box">
+        <h3>📦 How Crate Keys Work</h3>
+        <ul>
+          <li>🎁 Purchase a key and receive it in your in-game inventory</li>
+          <li>🗺️ Find a crate at spawn and right-click to open</li>
+          <li>🏆 Win random items based on the crate rarity!</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- COINS -->
+  <div class="page" id="page-coins">
+    <div class="space-y">
+      <div class="ph">
+        <div class="badge-pill" style="background:hsla(45,93%,47%,.12);color:var(--yellow);border:1px solid hsla(45,93%,47%,.25)">💰 IN-GAME CURRENCY</div>
+        <h1>Coin Packs</h1>
+        <p>Buy coins to spend on in-game items, cosmetics, and upgrades in the Infamous SMP store.</p>
+      </div>
+      <div class="grid g4" id="coinsGrid"></div>
+      <div class="info-box">
+        <h3>🪙 About Coins</h3>
+        <ul>
+          <li>💸 Use coins to purchase items from the in-game store</li>
+          <li>⚡ Coins are delivered instantly to your account</li>
+          <li>🎯 Bonus coins give you more value for your money!</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAGS -->
+  <div class="page" id="page-tags">
+    <div class="space-y">
+      <div class="ph">
+        <div class="badge-pill" style="background:hsla(330,81%,60%,.1);color:var(--pink);border:1px solid hsla(330,81%,60%,.25)">🏷️ CHAT COSMETICS</div>
+        <h1>Chat Tags</h1>
+        <p>Show off your status in chat with exclusive prefix tags. Displayed before your username in all chat messages.</p>
+      </div>
+      <div class="grid g3" id="tagsGrid"></div>
+    </div>
+  </div>
+
+</div>
+</main>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ft-logo"><span class="hi">INFAMOUS</span> SMP</div>
+  <div class="ft-txt">
+    We are not affiliated with Mojang AB. All purchases are final and non-refundable.<br/>
+    Need help? Contact our support team on <a href="https://discord.gg/ztmWEJg66R" target="_blank">Discord</a>.
+  </div>
+</footer>
+
+</div>
+
+<!-- CART PANEL -->
+<div class="cart-overlay" id="cartOverlay" onclick="outsideClose(event)">
+  <div class="cart-panel">
+    <div class="cart-hd">
+      <h2>🛒 Your Cart <span style="color:var(--muted-fg);font-weight:400;font-size:.82rem" id="cartLabel"></span></h2>
+      <button class="cart-close" onclick="closeCart()">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-ft" id="cartFooter"></div>
+  </div>
+</div>
+
+<script>
+// ─── IMAGE MAP (CDN — works on CodePen & anywhere) ───
+const BASE = 'https://odifxhljwjklkjtqlorx.supabase.co/storage/v1/object/public/store-images/';
+const IMGS = {
+  'warrior':        BASE+'rank-warrior.png',
+  'elite':          BASE+'rank-elite.png',
+  'champion':       BASE+'rank-champion.png',
+  'deadliest':      BASE+'rank-deadliest.png',
+  'boss':           BASE+'rank-boss.png',
+  'ace':            BASE+'rank-ace.png',
+  'mvp':            BASE+'prime-mvp.png',
+  'mvpplus':        BASE+'prime-mvpplus.png',
+  'vip':            BASE+'prime-vip.png',
+  'vipplus':        BASE+'prime-vipplus.png',
+  'key-common':     BASE+'key-common.png',
+  'key-rare':       BASE+'key-rare.png',
+  'key-epic':       BASE+'key-epic.png',
+  'key-legendary':  BASE+'key-legendary.png',
+  'coins-starter':  BASE+'coins-starter.png',
+  'coins-basic':    BASE+'coins-basic.png',
+  'coins-premium':  BASE+'coins-premium.png',
+  'coins-ultimate': BASE+'coins-ultimate.png',
+  'tag-og':         BASE+'tag-og.png',
+  'tag-pro':        BASE+'tag-pro.png',
+  'tag-legend':     BASE+'tag-legend.png',
+  'tag-goat':       BASE+'tag-goat.png',
+  'tag-rich':       BASE+'tag-rich.png',
+  'tag-custom':     BASE+'tag-custom.png',
+};
+
+function imgTag(key, size=90, extraStyle='', cls='') {
+  return `<img src="${IMGS[key]||''}" alt="${key}" width="${size}" height="${size}" style="object-fit:contain;${extraStyle}" class="${cls}" onerror="this.style.opacity='.2'"/>`;
+}
+
+// ─── DATA ─────────────────────────────────────
+const ranks = [
+  {id:'warrior',  name:'Warrior',   color:'slate', priceINR:59,  priceUSD:0.71, perks:['/fly command','/back command','2 home locations','100 coins','50k in-game money','Warrior kit']},
+  {id:'elite',    name:'Elite',     color:'blue',  priceINR:99,  priceUSD:1.19, perks:['/fly command','/back command','/anvil command','4 home locations','300 coins','100k in-game money','Elite kit']},
+  {id:'champion', name:'Champion',  color:'purple',priceINR:159, priceUSD:1.92, popular:true, perks:['/fly, /back, /craft, /anvil','Chat colour customization','6 home locations','500 coins','150k in-game money','Champion kit']},
+  {id:'deadliest',name:'Deadliest', color:'red',   priceINR:199, priceUSD:2.40, perks:['/fly, /back, /craft, /anvil','Chat colour customization','8 home locations','700 coins','200k in-game money','Deadliest kit']},
+  {id:'boss',     name:'Boss',      color:'orange',priceINR:249, priceUSD:3.00, perks:['/fly, /back, /craft, /anvil','Custom chat colour','10 home locations','999 coins','300k in-game money','Boss kit','Early access to events']},
+  {id:'ace',      name:'Ace',       color:'teal',  priceINR:299, priceUSD:3.60, perks:['/fly, /back, /craft, /anvil','Custom chat colour','12 home locations','1199 coins','500k in-game money','Ace ultimate kit','Early access to events']}
+];
+
+const primeRanks = [
+  {id:'mvp',     name:'MVP',   color:'blue',   priceINR:149, priceUSD:1.80, perks:['⚡ /fly command','⚡ /anvil, /craft, /echest','🏠 5 home locations','💰 400 coins','💵 300k money','🎁 Special MVP kit']},
+  {id:'mvpplus', name:'MVP+',  color:'purple', priceINR:249, priceUSD:3.00, popular:true, perks:['⚡ /fly, /anvil, /craft, /echest','🏠 10 home locations','💰 600 coins','💵 600k money','🎁 Special MVP+ kit','👑 Priority support']},
+  {id:'vip',     name:'VIP',   color:'gold',   priceINR:349, priceUSD:4.21, perks:['⚡ /fly, /anvil, /craft, /echest','🏠 15 home locations','💰 800 coins','💵 750k money','🎁 Special VIP kit','✨ Exclusive VIP lounge']},
+  {id:'vipplus', name:'VIP+',  color:'grad',   priceINR:449, priceUSD:5.41, ultimate:true, perks:['⚡ /fly, /anvil, /craft, /echest','🏠 ∞ Unlimited homes','💰 1000 coins','💵 1M money','🎁 Customizable kit','🚀 Early access to gamemodes','✨ Exclusive VIP+ cosmetics']}
+];
+
+const crateKeys = [
+  {id:'common',    name:'Common Key',    color:'slate',  priceINR:29,  priceUSD:0.35, desc:'Basic rewards with common items'},
+  {id:'rare',      name:'Rare Key',      color:'blue',   priceINR:59,  priceUSD:0.71, desc:'Better rewards with rare drops'},
+  {id:'epic',      name:'Epic Key',      color:'purple', priceINR:99,  priceUSD:1.19, popular:true, desc:'High chance for epic items'},
+  {id:'legendary', name:'Legendary Key', color:'orange', priceINR:149, priceUSD:1.79, desc:'Best drops with legendary items'}
+];
+
+const coinPacks = [
+  {id:'starter',  name:'Starter Pack',  coins:500,  priceINR:49,  priceUSD:0.59, color:'slate'},
+  {id:'basic',    name:'Basic Pack',    coins:1200, priceINR:99,  priceUSD:1.19, color:'blue',   bonus:'+200 bonus'},
+  {id:'premium',  name:'Premium Pack',  coins:3000, priceINR:199, priceUSD:2.40, color:'purple', popular:true, bonus:'+500 bonus'},
+  {id:'ultimate', name:'Ultimate Pack', coins:7500, priceINR:449, priceUSD:5.41, color:'gold',   bonus:'+1500 bonus'}
+];
+
+const tags = [
+  {id:'og',     name:'OG Tag',     display:'[OG]',       color:'gold',  colorClass:'tc-gold',   priceINR:79,  priceUSD:0.95},
+  {id:'pro',    name:'Pro Tag',    display:'[PRO]',      color:'blue',  colorClass:'tc-blue',   priceINR:59,  priceUSD:0.71},
+  {id:'legend', name:'Legend Tag', display:'[LEGEND]',   color:'purple',colorClass:'tc-purple', priceINR:99,  priceUSD:1.19, popular:true},
+  {id:'goat',   name:'GOAT Tag',   display:'[GOAT]',     color:'red',   colorClass:'tc-red',    priceINR:149, priceUSD:1.79},
+  {id:'rich',   name:'Rich Tag',   display:'[RICH]',     color:'green', colorClass:'tc-green',  priceINR:69,  priceUSD:0.83},
+  {id:'custom', name:'Custom Tag', display:'[YOUR NAME]',color:'grad',  colorClass:'tc-grad',   priceINR:199, priceUSD:2.40}
+];
+
+// ─── COLOR MAP ────────────────────────────────
+const CM = {
+  slate: {border:'bc-slate',bar:'bar-slate',btn:'btn-slate',bg:'bg-slate',glow:'glow-slate',tc:'tc-slate'},
+  blue:  {border:'bc-blue', bar:'bar-blue', btn:'btn-blue', bg:'bg-blue', glow:'glow-blue', tc:'tc-blue'},
+  purple:{border:'bc-purple',bar:'bar-purple',btn:'btn-purple',bg:'bg-purple',glow:'glow-purple',tc:'tc-purple'},
+  red:   {border:'bc-red',  bar:'bar-red',  btn:'btn-red',  bg:'bg-red',  glow:'glow-red',  tc:'tc-red'},
+  orange:{border:'bc-orange',bar:'bar-orange',btn:'btn-orange',bg:'bg-orange',glow:'glow-orange',tc:'tc-orange'},
+  teal:  {border:'bc-teal', bar:'bar-teal', btn:'btn-teal', bg:'bg-teal', glow:'glow-teal', tc:'tc-teal'},
+  gold:  {border:'bc-gold', bar:'bar-gold', btn:'btn-gold', bg:'bg-gold', glow:'glow-gold', tc:'tc-gold'},
+  green: {border:'bc-green',bar:'bar-green',btn:'btn-green',bg:'bg-green',glow:'glow-green',tc:'tc-green'},
+  grad:  {border:'bc-grad', bar:'bar-grad', btn:'btn-grad', bg:'bg-grad', glow:'glow-grad', tc:'tc-grad'},
+};
+
+// ─── CART ─────────────────────────────────────
+let cart = [];
+
+function addToCart(item) {
+  const ex = cart.find(c => c.id === item.id);
+  if (ex) ex.qty++;
+  else cart.push({...item, qty:1});
+  renderCart();
+  openCart();
+}
+
+function removeFromCart(id) {
+  cart = cart.filter(c => c.id !== id);
+  renderCart();
+}
+
+function changeQty(id, delta) {
+  const item = cart.find(c => c.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(c => c.id !== id);
+  renderCart();
+}
+
+function renderCart() {
+  const total = cart.reduce((s,i) => s + i.qty, 0);
+  document.getElementById('cartCount').textContent = `( ${total} )`;
+  document.getElementById('cartLabel').textContent = total > 0 ? `(${total} item${total>1?'s':''})` : '';
+
+  const el = document.getElementById('cartItems');
+  const ft = document.getElementById('cartFooter');
+
+  if (!cart.length) {
+    el.innerHTML = `<div class="cart-empty"><span style="font-size:2.5rem">🛒</span><span>Your cart is empty</span><span style="font-size:.75rem">Browse the store to add items</span></div>`;
+    ft.innerHTML = '';
+    return;
+  }
+
+  el.innerHTML = cart.map(item => `
+    <div class="cart-item">
+      <div class="cart-item-img">${imgTag(item.imgKey, 44)}</div>
+      <div class="cii">
+        <h4>${item.name}</h4>
+        <div class="cat">${item.category}</div>
+        <div class="pr">₹${(item.priceINR * item.qty).toFixed(0)} <span style="color:var(--muted-fg);font-size:.72rem;font-weight:400">($${(item.priceUSD * item.qty).toFixed(2)})</span></div>
+      </div>
+      <div class="qty-ctrl">
+        <button class="qb" onclick="changeQty('${item.id}',-1)">−</button>
+        <span class="qn">${item.qty}</span>
+        <button class="qb" onclick="changeQty('${item.id}',1)">+</button>
+      </div>
+      <button class="db" onclick="removeFromCart('${item.id}')" title="Remove">🗑</button>
+    </div>
+  `).join('');
+
+  const totalINR = cart.reduce((s,i) => s + i.priceINR * i.qty, 0);
+  const totalUSD = cart.reduce((s,i) => s + i.priceUSD * i.qty, 0);
+  const itemList = cart.map(i => `${i.name} x${i.qty}`).join(', ');
+  const dcMsg = encodeURIComponent(`🛒 New Order!\nItems: ${itemList}\nTotal: ₹${totalINR.toFixed(0)} ($${totalUSD.toFixed(2)})\n\nPlease process my order!`);
+  const dcLink = `https://discord.com/channels/1461360608430784616/1474103898041221151`;
+
+  ft.innerHTML = `
+    <div class="cart-tot"><span>Subtotal (INR)</span><span>₹${totalINR.toFixed(0)}</span></div>
+    <div class="cart-tot"><span>Subtotal (USD)</span><span>$${totalUSD.toFixed(2)}</span></div>
+    <div style="height:1px;background:var(--border);margin:4px 0"></div>
+    <div class="cart-tot main-tot"><span>Total</span><span style="color:var(--primary)">₹${totalINR.toFixed(0)}</span></div>
+    <div class="dc-checkout">
+      <a href="${dcLink}" target="_blank" class="btn btn-discord btn-full" style="font-size:.9rem;padding:11px 18px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+        Checkout on Discord
+      </a>
+      <p>Click to open our Discord order channel. Share your order details with a staff member to complete payment.</p>
+    </div>
+    <button class="btn btn-outline btn-full btn-sm" onclick="cart=[];renderCart()">🗑 Clear Cart</button>
+  `;
+}
+
+function openCart()  { document.getElementById('cartOverlay').classList.add('open'); }
+function closeCart() { document.getElementById('cartOverlay').classList.remove('open'); }
+function outsideClose(e) { if (e.target.id === 'cartOverlay') closeCart(); }
+
+// ─── NAVIGATION ───────────────────────────────
+function go(page, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (btn) btn.classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ─── USERNAME ─────────────────────────────────
+let ht;
+function upHead(v) {
+  clearTimeout(ht);
+  ht = setTimeout(() => {
+    const u = v.trim() || 'Steve';
+    document.getElementById('mcHead').src = `https://minotar.net/avatar/${encodeURIComponent(u)}/48`;
+  }, 600);
+}
+
+// ─── RENDER: RANKS ────────────────────────────
+function renderRanks() {
+  document.getElementById('ranksGrid').innerHTML = ranks.map(r => {
+    const c = CM[r.color] || CM.slate;
+    return `
+    <div class="card ${c.border} ${r.popular?'ring-p':''}">
+      ${r.popular ? '<div class="pop-badge">⭐ POPULAR</div>' : ''}
+      <div class="card-bar ${c.bar}"></div>
+      <div class="rk-banner ${c.bg}">
+        <div class="rk-banner-bg" style="background:radial-gradient(circle at 20% 50%,rgba(255,255,255,.08),transparent)"></div>
+        <div class="rk-banner-glow ${c.glow}"></div>
+        ${imgTag(r.id, 76, 'filter:drop-shadow(0 6px 18px rgba(0,0,0,.9))', 'rk-banner-img')}
+        <div class="rk-banner-text">
+          <div class="rk-banner-name ${c.tc}">${r.name}</div>
+          <div class="rk-banner-lifetime">Lifetime Rank</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="rk-price-row">
+          <span class="price-xl">₹${r.priceINR}</span>
+          <span class="price-sm">/ $${r.priceUSD} USD</span>
+        </div>
+        <ul class="perks">${r.perks.map(p=>`<li><span class="ck">✓</span>${p}</li>`).join('')}</ul>
+        <button class="btn ${c.btn} btn-full" onclick='addToCart({id:"rank-${r.id}",imgKey:"${r.id}",name:"${r.name} Rank",priceINR:${r.priceINR},priceUSD:${r.priceUSD},category:"Ranks"})'>🛒 Add to Cart</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── RENDER: PRIME ────────────────────────────
+function renderPrime() {
+  document.getElementById('primeGrid').innerHTML = primeRanks.map(r => {
+    const c = CM[r.color] || CM.blue;
+    const badge = r.ultimate ? '<div class="ult-badge">👑 ULTIMATE</div>' : r.popular ? '<div class="pop-badge">⭐ POPULAR</div>' : '';
+    return `
+    <div class="card ${c.border} ${r.popular?'ring-p':''} ${r.ultimate?'ring-y':''}">
+      ${badge}
+      <div class="card-bar ${c.bar}"></div>
+      <div class="prime-card-top">
+        <div class="prime-card-glow ${c.glow}"></div>
+        <div class="prime-img-wrap">
+          ${imgTag(r.id, 68, 'filter:drop-shadow(0 6px 18px rgba(0,0,0,.9))', 'prime-img')}
+          <div class="prime-info">
+            <div class="prime-name-row">
+              <h3 class="${c.tc}" style="font-size:1.4rem;font-weight:900;letter-spacing:-.5px">${r.name}</h3>
+              <span class="prime-badge">MONTHLY</span>
+            </div>
+            <div class="prime-price-row">
+              <span class="price-xl" style="font-size:1.6rem">₹${r.priceINR}</span>
+              <span class="price-sm">/mo · $${r.priceUSD}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="prime-body">
+        <ul class="perks" style="margin-bottom:14px">${r.perks.map(p=>`<li><span class="ck">✓</span>${p}</li>`).join('')}</ul>
+        <button class="btn ${c.btn} btn-full" onclick='addToCart({id:"prime-${r.id}",imgKey:"${r.id}",name:"${r.name} Monthly",priceINR:${r.priceINR},priceUSD:${r.priceUSD},category:"Prime Ranks"})'>🛒 Add to Cart</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── RENDER: KEYS ─────────────────────────────
+function renderKeys() {
+  document.getElementById('keysGrid').innerHTML = crateKeys.map(k => {
+    const c = CM[k.color] || CM.slate;
+    return `
+    <div class="card ${c.border} ${k.popular?'ring-p':''}">
+      ${k.popular ? '<div class="pop-badge">⭐ POPULAR</div>' : ''}
+      <div class="card-bar ${c.bar}"></div>
+      <div class="key-img-area">
+        <div class="key-img-glow" style="background:radial-gradient(circle,${getGlowColor(k.color)},transparent 70%)"></div>
+        ${imgTag('key-'+k.id, 86, 'filter:drop-shadow(0 6px 22px rgba(0,0,0,.9))', 'key-img')}
+      </div>
+      <div class="card-center" style="padding-top:14px">
+        <h3 class="${c.tc}" style="font-weight:800;font-size:1rem;margin-bottom:4px">${k.name}</h3>
+        <div class="price-xl" style="font-size:1.5rem">₹${k.priceINR}</div>
+        <div class="price-sm" style="margin-bottom:8px">$${k.priceUSD} USD</div>
+        <p style="font-size:.76rem;color:var(--muted-fg);margin-bottom:14px;line-height:1.5">${k.desc}</p>
+        <button class="btn ${c.btn} btn-full btn-sm" onclick='addToCart({id:"key-${k.id}",imgKey:"key-${k.id}",name:"${k.name}",priceINR:${k.priceINR},priceUSD:${k.priceUSD},category:"Crate Keys"})'>🛒 Add to Cart</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── RENDER: COINS ────────────────────────────
+function renderCoins() {
+  document.getElementById('coinsGrid').innerHTML = coinPacks.map(p => {
+    const c = CM[p.color] || CM.slate;
+    return `
+    <div class="card ${c.border} ${p.popular?'ring-p':''}">
+      ${p.popular ? '<div class="pop-badge">⭐ POPULAR</div>' : ''}
+      <div class="card-bar ${c.bar}"></div>
+      <div class="coin-img-area">
+        <div style="position:absolute;inset:0;background:radial-gradient(circle,${getGlowColor(p.color)},transparent 70%);opacity:.15"></div>
+        ${imgTag('coins-'+p.id, 82, 'filter:drop-shadow(0 6px 22px rgba(0,0,0,.9))', 'coin-img')}
+      </div>
+      <div class="card-center" style="padding-top:12px">
+        ${p.bonus ? `<div style="background:hsla(145,100%,45%,.12);border:1px solid hsla(145,100%,45%,.3);color:var(--accent);font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:999px;display:inline-block;margin-bottom:8px">${p.bonus}</div>` : '<div style="height:24px"></div>'}
+        <h3 style="font-weight:700;margin-bottom:4px;font-size:.9rem">${p.name}</h3>
+        <div style="font-size:1.2rem;font-weight:900;color:var(--yellow);margin-bottom:4px">🪙 ${p.coins.toLocaleString()}</div>
+        <div class="price-xl" style="font-size:1.4rem">₹${p.priceINR}</div>
+        <div class="price-sm" style="margin-bottom:14px">$${p.priceUSD} USD</div>
+        <button class="btn ${c.btn} btn-full btn-sm" onclick='addToCart({id:"coin-${p.id}",imgKey:"coins-${p.id}",name:"${p.name}",priceINR:${p.priceINR},priceUSD:${p.priceUSD},category:"Coins"})'>🛒 Add to Cart</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── RENDER: TAGS ─────────────────────────────
+function renderTags() {
+  document.getElementById('tagsGrid').innerHTML = tags.map(t => {
+    const c = CM[t.color] || CM.gold;
+    return `
+    <div class="card ${c.border} ${t.popular?'ring-p':''}">
+      ${t.popular ? '<div class="pop-badge">⭐ POPULAR</div>' : ''}
+      <div class="card-bar ${c.bar}"></div>
+      <div class="tag-card-top">
+        <div class="tag-card-glow" style="background:radial-gradient(circle at 50% 0%,${getGlowColor(t.color)},transparent 70%)"></div>
+        ${imgTag('tag-'+t.id, 66, 'filter:drop-shadow(0 4px 14px rgba(0,0,0,.8))', 'tag-img')}
+        <div class="tag-preview">
+          <span class="tag-txt ${t.colorClass}">${t.display}</span>
+          <span class="tag-un">Player</span>
+        </div>
+      </div>
+      <div class="tag-body">
+        <h3 style="font-weight:700;margin-bottom:8px;font-size:.95rem">${t.name}</h3>
+        <div class="price-xl" style="font-size:1.5rem">₹${t.priceINR}</div>
+        <div class="price-sm" style="margin-bottom:14px">$${t.priceUSD} USD · One-time</div>
+        <button class="btn ${c.btn} btn-full btn-sm" onclick='addToCart({id:"tag-${t.id}",imgKey:"tag-${t.id}",name:"${t.name}",priceINR:${t.priceINR},priceUSD:${t.priceUSD},category:"Tags"})'>🛒 Add to Cart</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── RENDER: HOME POPULAR ─────────────────────
+function renderPopular() {
+  const pop = [
+    {item:ranks.find(r=>r.id==='champion'), imgKey:'champion', category:'Ranks'},
+    {item:primeRanks.find(r=>r.id==='mvpplus'), imgKey:'mvpplus', category:'Prime Ranks'},
+    {item:crateKeys.find(k=>k.id==='legendary'), imgKey:'key-legendary', category:'Crate Keys'},
+  ];
+  document.getElementById('popGrid').innerHTML = pop.map(({item,imgKey,category}) => {
+    const colorMap = {champion:'purple','mvpplus':'purple','key-legendary':'orange'};
+    const col = colorMap[imgKey] || 'purple';
+    const c = CM[col];
+    return `
+    <div class="card bc-purple">
+      <div class="card-bar ${c.bar}"></div>
+      <div class="pop-img-area">
+        <div style="position:absolute;inset:0;background:radial-gradient(circle,${getGlowColor(col)},transparent 70%);opacity:.2"></div>
+        ${imgTag(imgKey, 84)}
+      </div>
+      <div class="card-body" style="padding:14px 16px">
+        <h3 style="font-weight:700;margin-bottom:4px;font-size:.95rem">${item.name}</h3>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="font-size:1.1rem;font-weight:800;color:var(--primary)">₹${item.priceINR}</span>
+          <span style="font-size:.75rem;color:var(--muted-fg)">$${item.priceUSD}</span>
+        </div>
+        <button class="btn btn-primary btn-full btn-sm" onclick='addToCart({id:"pop-${item.id}",imgKey:"${imgKey}",name:"${item.name}",priceINR:${item.priceINR},priceUSD:${item.priceUSD},category:"${category}"})'>🛒 Add to Cart</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── HELPER ───────────────────────────────────
+function getGlowColor(color) {
+  const map = {
+    slate:'hsl(215,16%,60%)',blue:'hsl(221,83%,65%)',purple:'hsl(276,91%,65%)',
+    red:'hsl(0,72%,60%)',orange:'hsl(25,95%,60%)',teal:'hsl(187,85%,60%)',
+    gold:'hsl(45,93%,55%)',green:'hsl(160,84%,50%)',grad:'hsl(276,91%,65%)'
+  };
+  return map[color] || 'hsl(276,91%,65%)';
+}
+
+// ─── INIT ─────────────────────────────────────
+renderRanks();
+renderPrime();
+renderKeys();
+renderCoins();
+renderTags();
+renderPopular();
+renderCart();
+</script>
+</body>
+</html>
+
