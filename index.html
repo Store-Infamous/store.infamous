@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Infamous AI v1.1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;600;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ===================== AUTH SCREENS ===================== -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-bg">
+    <div class="auth-grid"></div>
+    <div class="scanline"></div>
+  </div>
+
+  <div class="auth-container">
+    <div class="auth-logo">
+      <span class="logo-bracket">[</span>
+      <span class="logo-text">INFAMOUS AI</span>
+      <span class="logo-version">v1.1</span>
+      <span class="logo-bracket">]</span>
+    </div>
+    <p class="auth-tagline">// next-gen AI for developers_</p>
+
+    <!-- TAB SWITCHER -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="login">LOGIN</button>
+      <button class="auth-tab" data-tab="signup">SIGNUP</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form id="login-form" class="auth-form active">
+      <div class="input-group">
+        <label>EMAIL_</label>
+        <input type="email" id="login-email" placeholder="you@example.com" required />
+      </div>
+      <div class="input-group">
+        <label>PASSWORD_</label>
+        <div class="input-pass-wrap">
+          <input type="password" id="login-password" placeholder="••••••••" required />
+          <button type="button" class="toggle-pass" data-target="login-password">👁</button>
+        </div>
+      </div>
+      <div id="login-error" class="auth-error"></div>
+      <button type="submit" class="auth-btn" id="login-btn">
+        <span class="btn-text">INITIALIZE SESSION</span>
+        <span class="btn-loader"></span>
+      </button>
+    </form>
+
+    <!-- SIGNUP FORM -->
+    <form id="signup-form" class="auth-form">
+      <div class="input-group">
+        <label>USERNAME_</label>
+        <input type="text" id="signup-username" placeholder="your_handle" required minlength="3" maxlength="20" />
+      </div>
+      <div class="input-group">
+        <label>EMAIL_</label>
+        <input type="email" id="signup-email" placeholder="you@example.com" required />
+      </div>
+      <div class="input-group">
+        <label>PASSWORD_</label>
+        <div class="input-pass-wrap">
+          <input type="password" id="signup-password" placeholder="min 6 characters" required minlength="6" />
+          <button type="button" class="toggle-pass" data-target="signup-password">👁</button>
+        </div>
+      </div>
+      <div id="signup-error" class="auth-error"></div>
+      <button type="submit" class="auth-btn" id="signup-btn">
+        <span class="btn-text">CREATE ACCOUNT</span>
+        <span class="btn-loader"></span>
+      </button>
+    </form>
+
+    <p class="auth-footer">// INFAMOUS AI — built for devs. powered by Gemini Pro.</p>
+  </div>
+</div>
+
+<!-- ===================== MAIN APP ===================== -->
+<div id="app-screen" class="app-screen hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="sl-bracket">[</span>
+        <span class="sl-name">INFAMOUS AI</span>
+        <span class="sl-version">v1.1</span>
+        <span class="sl-bracket">]</span>
+      </div>
+      <button class="sidebar-toggle mobile-only" id="close-sidebar">✕</button>
+    </div>
+
+    <button class="new-chat-btn" id="new-chat-btn">
+      <span class="ncb-icon">+</span>
+      <span>NEW CHAT</span>
+    </button>
+
+    <div class="chat-history-section">
+      <div class="section-label">// CHAT HISTORY</div>
+      <div class="chat-list" id="chat-list">
+        <div class="chat-list-empty">No chats yet. Start one!</div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-info-card" id="user-info-card">
+        <div class="uic-avatar" id="uic-avatar">U</div>
+        <div class="uic-details">
+          <div class="uic-name" id="uic-name">Username</div>
+          <div class="uic-email" id="uic-email">email@example.com</div>
+          <div class="uic-plan">
+            <span class="plan-badge" id="plan-badge">FREE</span>
+            <span class="msg-remaining" id="msg-remaining">10 left</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-actions">
+        <button class="sa-btn" id="upgrade-btn" title="Upgrade Plan">⬆ UPGRADE</button>
+        <button class="sa-btn admin-only hidden" id="admin-btn" title="Admin Panel">🛠 ADMIN</button>
+        <button class="sa-btn logout-btn" id="logout-btn" title="Logout">⏻ EXIT</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CHAT -->
+  <main class="main-content">
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <button class="menu-btn" id="open-sidebar">☰</button>
+      <div class="topbar-title" id="topbar-title">INFAMOUS AI v1.1</div>
+      <div class="topbar-status">
+        <span class="status-dot"></span>
+        <span class="status-text">ONLINE</span>
+      </div>
+    </div>
+
+    <!-- CHAT MESSAGES -->
+    <div class="chat-area" id="chat-area">
+      <!-- Welcome screen -->
+      <div class="welcome-screen" id="welcome-screen">
+        <div class="welcome-logo">
+          <span class="wl-bracket">[</span>
+          <span class="wl-text">INFAMOUS AI</span>
+          <span class="wl-version">v1.1</span>
+          <span class="wl-bracket">]</span>
+        </div>
+        <p class="welcome-sub">// Powered by Google Gemini Pro • Optimized for Coding</p>
+        <div class="welcome-suggestions">
+          <div class="ws-label">// TRY THESE →</div>
+          <div class="ws-grid">
+            <button class="ws-card" data-prompt="Write a REST API in Node.js with Express and MongoDB">
+              <span class="ws-icon">🔧</span>
+              <span>Build a REST API<br/><small>Node.js + Express + MongoDB</small></span>
+            </button>
+            <button class="ws-card" data-prompt="Explain how JWT authentication works with code examples">
+              <span class="ws-icon">🔐</span>
+              <span>JWT Auth explained<br/><small>With code examples</small></span>
+            </button>
+            <button class="ws-card" data-prompt="Debug this Python code and fix any issues: def fibonacci(n): if n <= 1: return n return fibonacci(n-1) + fibonacci(n-2)">
+              <span class="ws-icon">🐛</span>
+              <span>Debug Python code<br/><small>Fix & optimize recursion</small></span>
+            </button>
+            <button class="ws-card" data-prompt="Create a responsive dark theme dashboard with HTML CSS and JavaScript">
+              <span class="ws-icon">🎨</span>
+              <span>Dark Dashboard UI<br/><small>HTML + CSS + JS</small></span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages go here -->
+      <div class="messages-container" id="messages-container"></div>
+    </div>
+
+    <!-- LIMIT WARNING BAR -->
+    <div class="limit-warning hidden" id="limit-warning">
+      <span id="limit-warning-text">⚠ 3 messages remaining today</span>
+      <button class="limit-upgrade-btn" id="limit-upgrade-btn">UPGRADE PLAN</button>
+    </div>
+
+    <!-- INPUT AREA -->
+    <div class="input-area">
+      <div class="input-wrapper">
+        <textarea
+          id="message-input"
+          placeholder="// Type your message or code question..."
+          rows="1"
+          maxlength="8000"
+        ></textarea>
+        <div class="input-controls">
+          <span class="char-count" id="char-count">0/8000</span>
+          <button class="send-btn" id="send-btn" disabled>
+            <span class="send-icon">▶</span>
+          </button>
+        </div>
+      </div>
+      <div class="input-footer">
+        <span>// INFAMOUS AI can make mistakes. Verify critical code.</span>
+        <span id="usage-display">0/10 msgs used</span>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ===================== UPGRADE MODAL ===================== -->
+<div class="modal-overlay hidden" id="upgrade-modal">
+  <div class="modal upgrade-modal">
+    <div class="modal-header">
+      <h2>// UPGRADE PLAN</h2>
+      <button class="modal-close" data-modal="upgrade-modal">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="plans-grid">
+        <div class="plan-card" data-plan="free">
+          <div class="pc-name">FREE</div>
+          <div class="pc-price">₹0</div>
+          <div class="pc-limit">10 msgs/day</div>
+          <div class="pc-badge current">CURRENT</div>
+        </div>
+        <div class="plan-card" data-plan="dirt">
+          <div class="pc-name">DIRT</div>
+          <div class="pc-price">₹69</div>
+          <div class="pc-limit">25 msgs/day</div>
+          <button class="pc-select-btn">SELECT</button>
+        </div>
+        <div class="plan-card" data-plan="stone">
+          <div class="pc-name">STONE</div>
+          <div class="pc-price">₹149</div>
+          <div class="pc-limit">50 msgs/day</div>
+          <button class="pc-select-btn">SELECT</button>
+        </div>
+        <div class="plan-card popular" data-plan="obsidian">
+          <div class="pc-popular-tag">⚡ POPULAR</div>
+          <div class="pc-name">OBSIDIAN</div>
+          <div class="pc-price">₹229</div>
+          <div class="pc-limit">80 msgs/day</div>
+          <button class="pc-select-btn">SELECT</button>
+        </div>
+        <div class="plan-card" data-plan="bedrock">
+          <div class="pc-name">BEDROCK</div>
+          <div class="pc-price">₹299</div>
+          <div class="pc-limit">150 msgs/day</div>
+          <button class="pc-select-btn">SELECT</button>
+        </div>
+      </div>
+
+      <div class="payment-section hidden" id="payment-section">
+        <div class="payment-header">
+          <h3>// PAYMENT INSTRUCTIONS</h3>
+        </div>
+        <div class="payment-qr">
+          <div class="qr-placeholder">
+            <div class="qr-inner">
+              <div class="qr-icon">📱</div>
+              <div class="qr-text">QR CODE</div>
+              <div class="qr-sub">Scan to Pay</div>
+            </div>
+          </div>
+          <div class="payment-info">
+            <div class="pi-plan">Selected Plan: <span id="selected-plan-name">—</span></div>
+            <div class="pi-amount">Amount: <span id="selected-plan-price">—</span></div>
+            <div class="pi-steps">
+              <div class="step">1. Scan QR and complete payment</div>
+              <div class="step">2. Open a ticket on our Discord server</div>
+              <div class="step">3. Send your payment screenshot</div>
+              <div class="step">4. Admin verifies & upgrades your plan</div>
+            </div>
+            <a href="https://discord.gg/your-server" target="_blank" class="discord-btn">
+              <span>🎮 OPEN DISCORD TICKET</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ADMIN PANEL MODAL ===================== -->
+<div class="modal-overlay hidden" id="admin-modal">
+  <div class="modal admin-modal">
+    <div class="modal-header">
+      <h2>// ADMIN CONTROL PANEL</h2>
+      <button class="modal-close" data-modal="admin-modal">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- STATS ROW -->
+      <div class="admin-stats" id="admin-stats">
+        <div class="stat-box"><div class="sb-val" id="stat-users">—</div><div class="sb-label">TOTAL USERS</div></div>
+        <div class="stat-box"><div class="sb-val" id="stat-chats">—</div><div class="sb-label">TOTAL CHATS</div></div>
+        <div class="stat-box"><div class="sb-val" id="stat-logins">—</div><div class="sb-label">LOGINS TODAY</div></div>
+      </div>
+
+      <!-- USERS TABLE -->
+      <div class="admin-section">
+        <div class="section-label">// USER MANAGEMENT</div>
+        <div class="admin-search">
+          <input type="text" id="admin-search" placeholder="Search users..." />
+          <button id="admin-refresh" class="admin-tool-btn">⟳ REFRESH</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table" id="admin-table">
+            <thead>
+              <tr>
+                <th>USERNAME</th>
+                <th>EMAIL</th>
+                <th>PLAN</th>
+                <th>USAGE</th>
+                <th>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="admin-table-body">
+              <tr><td colspan="5" class="loading-row">Loading users...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
